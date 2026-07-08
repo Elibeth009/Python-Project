@@ -1,0 +1,79 @@
+import pygame
+class Leg:
+    def __init__(self, side, anchor_idx, is_front):
+        self.side = side
+        self.anchor_idx = anchor_idx
+        self.is_front = is_front
+        self.foot = pygame.Vector2(0, 0)
+def main():
+
+
+    pygame.init()
+#install pygame
+WIDTH = 800
+HEIGHT = 600
+screen = pygame.display.set_mode((WIDTH, HEIGHT))
+pygame.display.set_caption("Realistic Procedural Skeleton Dinosaur")
+clock = pygame.time.Clock()
+
+num_bones = 25
+spine = [pygame.Vector2(WIDTH//2, HEIGHT//2)]
+for _ in range(num_bones):
+    spine.append(spine[-1] + pygame.Vector2(0, 20))
+angles = [0,0]*num_bones
+
+legs = []
+legs.append(Leg(-1, 4, True))
+legs.append(Leg(1, 4, True))
+legs.append(Leg(-1, 14, False))
+legs.append(Leg(1, 14, False))
+for leg in legs:
+    anc = spine[leg.anchor_idx]
+    leg.foot = pygame.Vector2(anc.x + leg.side * 70, anc.y + 70)
+running = True
+while running:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+
+        mouse_pos = pygame.mouse.get_pos()
+        spine[0] = pygame.Vector2(mouse_pos)
+
+        for i in range(1, len(spine)):
+            dir_vector = spine[i] - spine[i-1]
+            if dir_vector.length() > 0:
+                dir_vector = dir_vector.normalize()
+            spine[i] = spine[i-1] + dir_vector * 15
+
+        screen.fill((0, 0, 0))
+
+        for i in range(len(spine)):
+            if i == 0:
+                radius = 25 
+                color = (255, 100, 100)
+            elif i < 6:
+                radius = 18  
+                color = (240, 240, 240)
+            elif i < 14:
+                radius = 32
+                color = (220, 220, 220)
+            else:
+                radius = max(6, 28 - i)
+                color = (180, 180, 180)
+                
+            pygame.draw.circle(screen, color, (int(spine[i].x), int(spine[i].y)), radius)
+
+        pygame.draw.circle(screen, (0, 0, 0), (int(spine[0].x) + 5, int(spine[0].y) - 5), 4)
+
+        for leg in legs:
+            anc = spine[leg.anchor_idx]
+            
+            leg.foot = pygame.Vector2(anc.x + leg.side * 40, anc.y + 60)
+            
+            pygame.draw.line(screen, (150, 150, 150), anc, leg.foot, 6)
+            pygame.draw.circle(screen, (255, 50, 50), (int(leg.foot.x), int(leg.foot.y)), 10)
+
+        pygame.display.flip()
+        clock.tick(60)
+
+pygame.quit()
